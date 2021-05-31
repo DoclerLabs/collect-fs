@@ -13,7 +13,8 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "build": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --target=node10.4 --external:chokidar",
-    "build:bin": "esbuild src/bin.ts --bundle --platform=node --outfile=dist/bin.js --target=node10.4 --external:yargs --external:chokidar"
+    "build:bin": "esbuild src/bin.ts --bundle --platform=node --outfile=dist/bin.js --target=node10.4 --external:yargs --external:chokidar",
+    "prepublish": "npm run build & npm run build:bin"
   },
   "keywords": [],
   "author": "",
