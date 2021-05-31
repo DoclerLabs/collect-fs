@@ -2,7 +2,7 @@
 
 import yargs from "yargs/yargs";
 
-import collectFs from ".";
+import collectFs, { mergeDirectories } from ".";
 
 const args = yargs(process.argv)
   .option("source", {
@@ -16,8 +16,19 @@ const args = yargs(process.argv)
     demand: true,
     desc: "Target directory",
     alias: "t",
+  })
+  .option("watch", {
+    boolean: true,
+    default: false,
+    alias: "w",
   });
 
-const { source, target } = args.argv;
+const { source, target, watch } = args.argv;
 
-collectFs(source as string[], target);
+if (watch) {
+  collectFs(source as string[], target);
+} else {
+  mergeDirectories(source as string[], target).then(() => {
+    return process.exit(0);
+  });
+}

@@ -3,6 +3,77 @@ import { join, dirname, relative } from "path";
 
 import chokidar from "chokidar";
 
+const tree = async (
+  root: string,
+  base = "",
+  fileMap: Record<string, string> = {}
+) => {
+  const dir = join(root, base);
+  const contents = await promises.readdir(dir);
+  const recursivePromises: Promise<void>[] = [];
+  await Promise.all(
+    contents.map(async (content): Promise<void> => {
+      const path = join(dir, content);
+      const rel = join(base, content);
+      const stats = await promises.stat(path);
+      if (stats.isFile()) {
+        // eslint-disable-next-line no-param-reassign
+        fileMap[rel] = path;
+        return undefined;
+      }
+      if (stats.isDirectory()) {
+        recursivePromises.push(
+          // weird false positive
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          tree(root, rel, fileMap).then(() => {
+            return undefined;
+          })
+        );
+      }
+      return undefined;
+    })
+  );
+  await Promise.all(recursivePromises);
+  return fileMap;
+};
+
+const ensureDir = async (path: string) => {
+  try {
+    const stat = await promises.stat(path);
+    if (stat.isDirectory()) {
+      return;
+    }
+  } catch {
+    // ignore the fuck out of this error
+  } finally {
+    await promises.mkdir(path, { recursive: true });
+  }
+};
+
+export const mergeDirectories = async (
+  sources: string[],
+  destination: string
+): Promise<void> => {
+  await ensureDir(destination);
+
+  const trees = await Promise.all(
+    sources.map((source) => {
+      return tree(source);
+    })
+  );
+  const matches: Record<string, string> = trees.reduce((acc, next) => {
+    return { ...acc, ...next };
+  }, {});
+
+  await Promise.all(
+    Object.entries(matches).map(async ([rel, absolute]) => {
+      const ss = join(destination, rel);
+      await ensureDir(dirname(ss));
+      return promises.copyFile(absolute, ss);
+    })
+  );
+};
+
 export default function collectFs(
   sources: string[],
   destination: string
@@ -10,19 +81,6 @@ export default function collectFs(
   if (!existsSync(destination)) {
     mkdirSync(destination);
   }
-
-  const ensureDir = async (path: string) => {
-    try {
-      const stat = await promises.stat(path);
-      if (stat.isDirectory()) {
-        return;
-      }
-    } catch {
-      // ignore the fuck out of this error
-    } finally {
-      await promises.mkdir(path, { recursive: true });
-    }
-  };
 
   const files: Record<string, number[]> = {};
 
