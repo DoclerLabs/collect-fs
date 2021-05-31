@@ -1,0 +1,35 @@
+{
+  "name": "collect-fs",
+  "version": "1.0.0",
+  "description": "Merge multiple directories in one. Precedence is based on arguments.",
+  "main": "dist/index.js",
+  "bin": {
+    "collect-fs": "./dist/bin.js",
+    "cfs": "./dist/bin.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --target=node10.4 --external:chokidar",
+    "build:bin": "esbuild src/bin.ts --bundle --platform=node --outfile=dist/bin.js --target=node10.4 --external:yargs --external:chokidar"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "15.6.1",
+    "esbuild": "0.12.5",
+    "esbuild-jest": "0.5.0",
+    "eslint": "7.27.0",
+    "eslint-config-inlucent": "1.0.0",
+    "prettier": "2.3.0",
+    "ts-node": "10.0.0",
+    "typescript": "4.2.4"
+  },
+  "dependencies": {
+    "chokidar": "3.5.1",
+    "yargs": "17.0.1"
+  }
+}
