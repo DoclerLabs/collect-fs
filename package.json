@@ -1,5 +1,5 @@
 {
-  "name": "collect-fs",
+  "name": "@dh-pub/collect-fs",
   "version": "1.1.0",
   "description": "Merge multiple directories in one. Precedence is based on arguments.",
   "main": "dist/index.js",
@@ -17,7 +17,7 @@
     "prepublish": "npm run build & npm run build:bin"
   },
   "keywords": [],
-  "author": "",
+  "author": "DoclerLabs",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "15.6.1",

@@ -1,4 +1,12 @@
+# Collect FS
+
 Merge multiple directories in one. Precedence is based on arguments.
+
+## Install
+
+```bash
+npm i @dh-pub/collect-fs
+```
 
 ## Usage
 
@@ -18,7 +26,7 @@ collect-fs --source=/path/to/one/directory /path/to/another/directory --target=/
 ## Node Usage
 
 ```js
-import collectFs from "collect-fs";
+import collectFs from "@dh-pub/collect-fs";
 
 collectFs(
   ["/path/to/one/directory", "/path/to/another/directory"],
