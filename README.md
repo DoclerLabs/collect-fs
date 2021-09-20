@@ -30,7 +30,9 @@ import collectFs from "@dh-pub/collect-fs";
 
 collectFs(
   ["/path/to/one/directory", "/path/to/another/directory"],
-  "/path/to/target/directory"
+  "/path/to/target/directory", function onEvent(eventData) {
+    /** @type {type: "add" | "change" | "unlink", data: Record<string, unknown>} */
+  }
 );
 ```
 
