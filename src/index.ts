@@ -74,15 +74,13 @@ export const mergeDirectories = async (
   );
 };
 
-type EventData = {
-  type: "add" | "change" | "unlink",
-  data: Record<string, unknown>
-}
-
 export default function collectFs(
   sources: string[],
   destination: string,
-  onEvent?: (eventData: EventData) => void,
+  onEvent?: (data: {
+    type: "add" | "change" | "unlink";
+    payload: Record<string, unknown>;
+  }) => void
 ): void {
   if (!existsSync(destination)) {
     mkdirSync(destination);
@@ -133,7 +131,10 @@ export default function collectFs(
       return join(sources[lastIndex], rel);
     };
 
-    const handleFileUpdate = async (path: string, eventType: "add" | "change") => {
+    const handleFileUpdate = async (
+      path: string,
+      eventType: "add" | "change"
+    ) => {
       const rel = relative(base, path);
       updateFile(rel);
       if (shouldBail(rel)) {
@@ -144,17 +145,20 @@ export default function collectFs(
       await promises.copyFile(path, target, constants.COPYFILE_FICLONE);
 
       if (onEvent) {
-        onEvent({ type: eventType, data: { path, rel, target } })
+        onEvent({
+          type: eventType,
+          payload: { filesStackCount: Object.keys(files).length },
+        });
       }
-      if (process.send) {
-        process.send({ type: eventType, data: { path, rel, target }})
-      }
-
     };
 
-    watcher.on("add", (path) => handleFileUpdate(path, "add"));
+    watcher.on("add", (path) => {
+      return handleFileUpdate(path, "add");
+    });
 
-    watcher.on("change", (path) => handleFileUpdate(path, "change"));
+    watcher.on("change", (path) => {
+      return handleFileUpdate(path, "change");
+    });
 
     watcher.on("unlink", async (path) => {
       const rel = relative(base, path);
@@ -172,12 +176,11 @@ export default function collectFs(
       await promises.unlink(target);
 
       if (onEvent) {
-        onEvent({ type: "unlink", data: { path, rel, target } })
+        onEvent({
+          type: "unlink",
+          payload: { filesStackCount: Object.keys(files).length },
+        });
       }
-      if (process.send) {
-        process.send({ type: "unlink", data: { path, rel, target }})
-      }
-
     });
   });
 
