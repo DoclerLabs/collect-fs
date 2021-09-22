@@ -147,7 +147,7 @@ export default function collectFs(
       if (onEvent) {
         onEvent({
           type: eventType,
-          payload: { filesStackCount: Object.keys(files).length },
+          payload: { filesStackCount: Object.keys(files).length, rel },
         });
       }
     };
@@ -178,7 +178,7 @@ export default function collectFs(
       if (onEvent) {
         onEvent({
           type: "unlink",
-          payload: { filesStackCount: Object.keys(files).length },
+          payload: { filesStackCount: Object.keys(files).length, rel },
         });
       }
     });
