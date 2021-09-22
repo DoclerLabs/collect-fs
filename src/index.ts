@@ -171,9 +171,9 @@ export default function collectFs(
       if (next) {
         await ensureDir(dirname(target));
         await promises.copyFile(next, target, constants.COPYFILE_FICLONE);
-        return;
+      } else {
+        await promises.unlink(target);
       }
-      await promises.unlink(target);
 
       if (onEvent) {
         onEvent({
