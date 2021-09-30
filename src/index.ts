@@ -76,7 +76,11 @@ export const mergeDirectories = async (
 
 export default function collectFs(
   sources: string[],
-  destination: string
+  destination: string,
+  onEvent?: (data: {
+    type: "add" | "change" | "unlink";
+    payload: Record<string, unknown>;
+  }) => void
 ): void {
   if (!existsSync(destination)) {
     mkdirSync(destination);
@@ -127,7 +131,10 @@ export default function collectFs(
       return join(sources[lastIndex], rel);
     };
 
-    const handleFileUpdate = async (path: string) => {
+    const handleFileUpdate = async (
+      path: string,
+      eventType: "add" | "change"
+    ) => {
       const rel = relative(base, path);
       updateFile(rel);
       if (shouldBail(rel)) {
@@ -136,11 +143,22 @@ export default function collectFs(
       const target = join(destination, rel);
       await ensureDir(dirname(target));
       await promises.copyFile(path, target, constants.COPYFILE_FICLONE);
+
+      if (onEvent) {
+        onEvent({
+          type: eventType,
+          payload: { filesStackCount: Object.keys(files).length, rel },
+        });
+      }
     };
 
-    watcher.on("add", handleFileUpdate);
+    watcher.on("add", (path) => {
+      return handleFileUpdate(path, "add");
+    });
 
-    watcher.on("change", handleFileUpdate);
+    watcher.on("change", (path) => {
+      return handleFileUpdate(path, "change");
+    });
 
     watcher.on("unlink", async (path) => {
       const rel = relative(base, path);
@@ -153,9 +171,16 @@ export default function collectFs(
       if (next) {
         await ensureDir(dirname(target));
         await promises.copyFile(next, target, constants.COPYFILE_FICLONE);
-        return;
+      } else {
+        await promises.unlink(target);
       }
-      await promises.unlink(target);
+
+      if (onEvent) {
+        onEvent({
+          type: "unlink",
+          payload: { filesStackCount: Object.keys(files).length, rel },
+        });
+      }
     });
   });
 
